@@ -1587,7 +1587,7 @@ async function connectSheets(){
     sheetsUrl=url; localStorage.setItem('ac_sheets_url',sheetsUrl);
     setTimeout(()=>{ closeSheetsModal(); syncSheets(); },1000);
   } catch(e){
-    res.style.color='#ff4444'; res.textContent="⚠ Erişilemiyor. Aşağıdaki adımı dene: Uzantılar → Yayınla → Web'e yayınla → CSV olarak yayınla.";
+    res.style.color='#ff4444'; res.textContent='⚠ Hata: ' + e.message;
   }
 }
 
