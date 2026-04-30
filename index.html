@@ -1312,7 +1312,7 @@ function calcOhm(){
 // ── ARCHIVE ──
 let archive = JSON.parse(localStorage.getItem('ac_archive') || '[]');
 let activeFilter = 'all';
-let sheetsUrl = localStorage.getItem('ac_sheets_url') || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTykYcqRa2UdAn2ohatimq2ixU9U78ruRiMulNS4xPthaQMM1kHkUVF-JbxednXehT72rWo9pby7XBt/pub?output=csv';
+let sheetsUrl = localStorage.getItem('ac_sheets_url') || 'https://drive.google.com/file/d/1ef4Cd02lH2ZRXf2Br-1biu5tbZuSXMaa/view?usp=sharing';
 
 const typeIcons  = { video:'📹', pdf:'📄', excel:'📊', manual:'📖', standard:'📋' };
 const typeLabels = { video:'VİDEO', pdf:'PDF', excel:'EXCEL', manual:'KILAVUZ', standard:'STANDART' };
@@ -1321,67 +1321,19 @@ const typeColors = { video:'accent2', pdf:'accent', excel:'accent3', manual:'acc
 function saveArchive(){ localStorage.setItem('ac_archive', JSON.stringify(archive)); }
 
 function sheetsToCsv(url){
-  try {
-    // Direkt yayınlanmış CSV linki (pub?output=csv)
-    if(url.includes('pub?output=csv') || url.includes('pub&output=csv')) return url;
-    // Normal Sheets URL → gviz endpoint
-    const m = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
-    if(!m) return null;
-    return `https://docs.google.com/spreadsheets/d/${m[1]}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
-  } catch(e){ return null; }
+  // Google Drive dosya linki → direkt download
+  const mDrive = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if(mDrive) return `https://drive.google.com/uc?export=download&id=${mDrive[1]}`;
+  return url;
 }
 
 async function fetchCSV(csvUrl){
-  return new Promise((resolve, reject)=>{
-    try {
-      const cbName = 'gviz_cb_' + Date.now();
-      const script = document.createElement('script');
-
-      const timeout = setTimeout(()=>{
-        delete window[cbName];
-        if(script.parentNode) document.head.removeChild(script);
-        reject(new Error('Zaman aşımı — Vercel\'e deploy ettikten sonra çalışacak'));
-      }, 8000);
-
-      window[cbName] = function(data){
-        clearTimeout(timeout);
-        delete window[cbName];
-        if(script.parentNode) document.head.removeChild(script);
-        try {
-          const cols = data.table.cols.map(c => c.label || '');
-          const rows = data.table.rows.map(r =>
-            r.c.map(cell => (cell && cell.v != null) ? String(cell.v) : '')
-          );
-          const csv = [cols, ...rows].map(r =>
-            r.map(v => v.includes(',') ? `"${v}"` : v).join(',')
-          ).join('\n');
-          resolve(csv);
-        } catch(e){ reject(new Error('Veri parse hatası: ' + e.message)); }
-      };
-
-      // /e/ published ID için doğru endpoint
-      const mPub  = csvUrl.match(/\/d\/e\/([^/?]+)/);
-      const mNorm = csvUrl.match(/\/d\/([^/e][^/?]+)/);
-
-      let gvizUrl;
-      if(mPub){
-        gvizUrl = `https://docs.google.com/spreadsheets/d/e/${mPub[1]}/gviz/tq?tqx=out:json&callback=${cbName}`;
-      } else if(mNorm){
-        gvizUrl = `https://docs.google.com/spreadsheets/d/${mNorm[1]}/gviz/tq?tqx=out:json&callback=${cbName}`;
-      } else {
-        reject(new Error('Geçersiz Sheets URL')); return;
-      }
-
-      script.src = gvizUrl;
-      script.onerror = () => {
-        clearTimeout(timeout);
-        delete window[cbName];
-        if(script.parentNode) document.head.removeChild(script);
-        reject(new Error('Script yüklenemedi'));
-      };
-      document.head.appendChild(script);
-    } catch(e){ reject(e); }
-  });
+  const resp = await fetch(csvUrl);
+  if(!resp.ok) throw new Error('HTTP ' + resp.status);
+  const text = await resp.text();
+  // Drive bazen HTML dönebilir (büyük dosyalarda uyarı sayfası)
+  if(text.trim().startsWith('<')) throw new Error('Drive erişim hatası — dosyanın herkese açık olduğunu kontrol et');
+  return text;
 }
 
 async function syncSheets(){
