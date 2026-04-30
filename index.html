@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AutoCalc Pro">
+<meta name="theme-color" content="#0a0f1a">
+<title>AutoCalc Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07090f;
+    --bg2: #0d1220;
+    --bg3: #131929;
+    --panel: #111827;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #39ff14;
+    --text: #c8d8e8;
+    --text-dim: #5a7a94;
+    --text-bright: #e8f4ff;
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Barlow', sans-serif;
+    --cond: 'Barlow Condensed', sans-serif;
+    --glow: 0 0 20px rgba(0,212,255,0.3);
+    --glow2: 0 0 20px rgba(255,107,53,0.3);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,0.012) 2px, rgba(0,212,255,0.012) 4px);
+    pointer-events:none;
+    z-index:9999;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top:0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .logo-text {
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-shadow: var(--glow);
+  }
+
+  .logo-sub {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    display: block;
+    margin-top: -2px;
+  }
+
+  /* ── NAV TABS ── */
+  .nav {
+    display: flex;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav::-webkit-scrollbar { display:none; }
+
+  .nav-btn {
+    flex: 0 0 auto;
+    padding: 10px 16px;
+    font-family: var(--cond);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nav-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    text-shadow: var(--glow);
+  }
+
+  .nav-btn:active { opacity: 0.7; }
+
+  /* ── PAGES ── */
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
+
+  /* ── SECTION TITLE ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: var(--cond);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--border), transparent);
+  }
+
+  /* ── CONVERTER CARD ── */
+  .conv-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .conv-card-header {
+    padding: 10px 14px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .conv-card-title {
+    font-family: var(--cond);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .conv-card-title .icon { font-size: 16px; }
+  .conv-arrow { color: var(--text-dim); transition: transform 0.2s; font-size: 12px; }
+  .conv-card.open .conv-arrow { transform: rotate(180deg); }
+
+  .conv-body {
+    display: none;
+    padding: 14px;
+  }
+  .conv-card.open .conv-body { display: block; }
+
+  /* ── INPUT GRID ── */
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 8px;
+    align-items: end;
+    margin-bottom: 10px;
+  }
+
+  .input-group label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .input-group select,
+  .input-group input[type="number"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-bright);
+    font-family: var(--mono);
+    font-size: 15px;
+    padding: 9px 10px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .input-group select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a7a94'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+
+  .input-group input:focus,
+  .input-group select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(0,212,255,0.2);
+  }
+
+  .swap-btn {
+    width: 36px; height: 36px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--accent);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-bottom: 0;
+    transition: all 0.2s;
+  }
+  .swap-btn:active { background: var(--accent); color: var(--bg); transform: scale(0.9); }
+
+  .result-display {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent3);
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 18px;
+    color: var(--accent3);
+    text-shadow: 0 0 10px rgba(57,255,20,0.4);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    letter-spacing: 1px;
+  }
+
+  .result-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+
+  /* ── QUICK REF TABLE ── */
+  .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+
+  .ref-table th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ref-table td {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    padding: 7px 8px;
+    border-bottom: 1px solid rgba(30,45,69,0.5);
+  }
+
+  .ref-table tr:last-child td { border-bottom: none; }
+  .ref-table td:first-child { color: var(--accent); }
+
+  /* ── ARCHIVE PAGE ── */
+  .search-bar {
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  .search-bar input {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-bright);
+    font-family: var(--sans);
+    font-size: 15px;
+    padding: 12px 14px 12px 42px;
+    outline: none;
+  }
+
+  .search-bar input:focus { border-color: var(--accent); }
+
+  .search-bar .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    font-size: 16px;
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+
+  .filter-chip {
+    flex: 0 0 auto;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .filter-chip.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,212,255,0.08);
+  }
+
+  .add-item-btn {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    color: var(--accent);
+    font-family: var(--cond);
+    font-size: 13px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    margin-bottom: 14px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .add-item-btn:active { background: rgba(0,212,255,0.05); }
+
+  .archive-item {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    text-decoration: none;
+    transition: border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .archive-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent2);
+  }
+
+  .archive-item[data-type="video"]::before { background: var(--accent2); }
+  .archive-item[data-type="pdf"]::before { background: var(--accent); }
+
+  .archive-item:active { border-color: var(--accent); }
+
+  .archive-icon {
+    width: 40px; height: 40px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .archive-icon.video { background: rgba(255,107,53,0.15); }
+  .archive-icon.pdf { background: rgba(0,212,255,0.1); }
+
+  .archive-info { flex: 1; min-width: 0; }
+
+  .archive-title {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-bright);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 3px;
+  }
+
+  .archive-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    display: flex;
+    gap: 8px;
+  }
+
+  .archive-tag {
+    padding: 1px 6px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .archive-tag.video { color: var(--accent2); border-color: var(--accent2); }
+  .archive-tag.pdf { color: var(--accent); border-color: var(--accent); }
+
+  .archive-action {
+    color: var(--text-dim);
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(7,9,15,0.95);
+    z-index: 1000;
+    display: none;
+    align-items: flex-end;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    width: 100%;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-radius: 12px 12px 0 0;
+    padding: 20px 16px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-title {
+    font-family: var(--cond);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .modal input, .modal select, .modal textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-bright);
+    font-family: var(--sans);
+    font-size: 15px;
+    padding: 12px 12px;
+    outline: none;
+    margin-bottom: 10px;
+    -webkit-appearance: none;
+  }
+
+  .modal input:focus, .modal select:focus { border-color: var(--accent); }
+
+  .modal select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a7a94'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+
+  .modal-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .modal-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .btn-primary {
+    padding: 13px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 3px;
+    font-family: var(--cond);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-secondary {
+    padding: 13px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: var(--cond);
+    font-size: 14px;
+    letter-spacing: 2px;
+    cursor: pointer;
+  }
+
+  .btn-primary:active { opacity: 0.8; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+  }
+
+  .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-state p { font-family: var(--mono); font-size: 12px; line-height: 1.6; }
+
+  /* ── DELETE BTN ── */
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 6px;
+    margin-left: 4px;
+  }
+  .delete-btn:active { color: #ff4444; }
+
+  /* iOS bottom safe area */
+  .page { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+
+  /* ── TEMP TABS ── */
+  .temp-tab {
+    flex: 1;
+    padding: 7px 6px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .temp-tab.active {
+    background: rgba(0,212,255,0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <div>
+      <div class="logo-text">AUTOCALC</div>
+      <span class="logo-sub">ENDÜSTRİYEL ARAÇLAR v1.0</span>
+    </div>
+  </div>
+</header>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPage('converters')">⚙️ DÖNÜŞÜM</button>
+  <button class="nav-btn" onclick="showPage('archive')">📁 ARŞİV</button>
+</nav>
+
+<!-- CONVERTERS PAGE -->
+<div class="page active" id="page-converters">
+
+  <!-- SICAKLIK -->
+  <div class="conv-card open" id="card-temp">
+    <div class="conv-card-header" onclick="toggleCard('card-temp')">
+      <div class="conv-card-title"><span class="icon">🌡️</span> SICAKLIK</div>
+      <span class="conv-arrow">▼</span>
+    </div>
+    <div class="conv-body">
+
+      <!-- Tab seçimi -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <button class="temp-tab active" id="ttab-std" onclick="switchTempTab('std')">°C / °F / K</button>
+        <button class="temp-tab" id="ttab-pt100" onclick="switchTempTab('pt100')">PT100 / PT1000</button>
+        <button class="temp-tab" id="ttab-ma" onclick="switchTempTab('ma')">4–20 mA</button>
+      </div>
+
+      <!-- STANDART DÖNÜŞÜM -->
+      <div id="temp-panel-std">
+        <div class="input-row">
+          <div class="input-group">
+            <label>BİRİM</label>
+            <select id="temp-from">
+              <option value="C">°C — Celsius</option>
+              <option value="F">°F — Fahrenheit</option>
+              <option value="K">K — Kelvin</option>
+              <option value="R">°R — Rankine</option>
+            </select>
+          </div>
+          <button class="swap-btn" onclick="swapUnits('temp')">⇄</button>
+          <div class="input-group">
+            <label>HEDEF</label>
+            <select id="temp-to">
+              <option value="F">°F — Fahrenheit</option>
+              <option value="C">°C — Celsius</option>
+              <option value="K">K — Kelvin</option>
+              <option value="R">°R — Rankine</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-group" style="margin-bottom:10px">
+          <label>DEĞER GİR</label>
+          <input type="number" id="temp-in" placeholder="0" oninput="convert('temp')">
+        </div>
+        <div class="result-label">SONUÇ</div>
+        <div class="result-display" id="temp-out">—</div>
+      </div>
+
+      <!-- PT100 / PT1000 -->
+      <div id="temp-panel-pt100" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div class="input-group">
+            <label>SENSÖR TİPİ</label>
+            <select id="pt-type" onchange="calcPT()">
+              <option value="100">PT100 (α=0.00385)</option>
+              <option value="1000">PT1000 (α=0.00385)</option>
+              <option value="100_jis">PT100 JIS (α=0.003916)</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>GİRİŞ TÜRÜ</label>
+            <select id="pt-dir" onchange="calcPT()">
+              <option value="t2r">°C → Ω (Direnç)</option>
+              <option value="r2t">Ω → °C (Sıcaklık)</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-group" style="margin-bottom:10px">
+          <label id="pt-in-label">SICAKLIK (°C)</label>
+          <input type="number" id="pt-in" placeholder="0" oninput="calcPT()">
+        </div>
+        <div class="result-label">SONUÇ</div>
+        <div class="result-display" id="pt-out">—</div>
+        <table class="ref-table" style="margin-top:12px">
+          <tr><th>°C</th><th>PT100 (Ω)</th><th>PT1000 (Ω)</th></tr>
+          <tr><td>-50</td><td>80.31</td><td>803.1</td></tr>
+          <tr><td>0</td><td>100.00</td><td>1000.0</td></tr>
+          <tr><td>25</td><td>109.73</td><td>1097.3</td></tr>
+          <tr><td>100</td><td>138.51</td><td>1385.1</td></tr>
+          <tr><td>200</td><td>175.86</td><td>1758.6</td></tr>
+          <tr><td>300</td><td>212.05</td><td>2120.5</td></tr>
+          <tr><td>400</td><td>247.09</td><td>2470.9</td></tr>
+          <tr><td>500</td><td>280.98</td><td>2809.8</td></tr>
+        </table>
+      </div>
+
+      <!-- 4–20 mA DÖNÜŞÜM -->
+      <div id="temp-panel-ma" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div class="input-group">
+            <label>ÖLÇEĞİN MİN (°C)</label>
+            <input type="number" id="ma-tmin" placeholder="-50" value="-50" oninput="calcMA()">
+          </div>
+          <div class="input-group">
+            <label>ÖLÇEĞİN MAX (°C)</label>
+            <input type="number" id="ma-tmax" placeholder="150" value="150" oninput="calcMA()">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div class="input-group">
+            <label>AKIM (mA)</label>
+            <input type="number" id="ma-ma" placeholder="12" min="4" max="20" oninput="calcMA_fromMA()">
+          </div>
+          <div class="input-group">
+            <label>SICAKLIK (°C)</label>
+            <input type="number" id="ma-temp" placeholder="0" oninput="calcMA_fromTemp()">
+          </div>
+        </div>
+        <div class="result-label">SONUÇ</div>
+        <div class="result-display" id="ma-out" style="font-size:14px;line-height:1.7">—</div>
+        <div style="margin-top:12px;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px;font-family:var(--mono);font-size:11px;color:var(--text-dim);line-height:1.8">
+          <div style="color:var(--accent);margin-bottom:4px;letter-spacing:1px">FORMÜL</div>
+          T = Tmin + (mA - 4) × (Tmax - Tmin) / 16<br>
+          mA = 4 + (T - Tmin) × 16 / (Tmax - Tmin)<br>
+          <span style="color:#ff4444">4 mA = Alt limit &nbsp;|&nbsp; 20 mA = Üst limit</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BASINÇ -->
+  <div class="conv-card" id="card-pressure">
+    <div class="conv-card-header" onclick="toggleCard('card-pressure')">
+      <div class="conv-card-title"><span class="icon">🔧</span> BASINÇ</div>
+      <span class="conv-arrow">▼</span>
+    </div>
+    <div class="conv-body">
+      <div class="input-row">
+        <div class="input-group">
+          <label>BİRİM</label>
+          <select id="pressure-from">
+            <option value="bar">bar</option>
+            <option value="psi">PSI</option>
+            <option value="pa">Pa</option>
+            <option value="kpa">kPa</option>
+            <option value="mpa">MPa</option>
+            <option value="atm">atm</option>
+            <option value="mmhg">mmHg</option>
+          </select>
+        </div>
+        <button class="swap-btn" onclick="swapUnits('pressure')">⇄</button>
+        <div class="input-group">
+          <label>HEDEF</label>
+          <select id="pressure-to">
+            <option value="psi">PSI</option>
+            <option value="bar">bar</option>
+            <option value="pa">Pa</option>
+            <option value="kpa">kPa</option>
+            <option value="mpa">MPa</option>
+            <option value="atm">atm</option>
+            <option value="mmhg">mmHg</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-group" style="margin-bottom:10px">
+        <label>DEĞER GİR</label>
+        <input type="number" id="pressure-in" placeholder="0" oninput="convert('pressure')">
+      </div>
+      <div class="result-label">SONUÇ</div>
+      <div class="result-display" id="pressure-out">—</div>
+      <table class="ref-table" style="margin-top:12px">
+        <tr><th>bar</th><th>PSI</th><th>kPa</th><th>atm</th></tr>
+        <tr><td>1</td><td>14.504</td><td>100</td><td>0.987</td></tr>
+        <tr><td>6</td><td>87.02</td><td>600</td><td>5.92</td></tr>
+        <tr><td>10</td><td>145.04</td><td>1000</td><td>9.87</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- UZUNLUK -->
+  <div class="conv-card" id="card-length">
+    <div class="conv-card-header" onclick="toggleCard('card-length')">
+      <div class="conv-card-title"><span class="icon">📏</span> UZUNLUK</div>
+      <span class="conv-arrow">▼</span>
+    </div>
+    <div class="conv-body">
+      <div class="input-row">
+        <div class="input-group">
+          <label>BİRİM</label>
+          <select id="length-from">
+            <option value="mm">mm</option>
+            <option value="cm">cm</option>
+            <option value="m">m</option>
+            <option value="km">km</option>
+            <option value="in">inç</option>
+            <option value="ft">foot</option>
+            <option value="yd">yard</option>
+          </select>
+        </div>
+        <button class="swap-btn" onclick="swapUnits('length')">⇄</button>
+        <div class="input-group">
+          <label>HEDEF</label>
+          <select id="length-to">
+            <option value="in">inç</option>
+            <option value="mm">mm</option>
+            <option value="cm">cm</option>
+            <option value="m">m</option>
+            <option value="km">km</option>
+            <option value="ft">foot</option>
+            <option value="yd">yard</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-group" style="margin-bottom:10px">
+        <label>DEĞER GİR</label>
+        <input type="number" id="length-in" placeholder="0" oninput="convert('length')">
+      </div>
+      <div class="result-label">SONUÇ</div>
+      <div class="result-display" id="length-out">—</div>
+    </div>
+  </div>
+
+  <!-- GÜÇ -->
+  <div class="conv-card" id="card-power">
+    <div class="conv-card-header" onclick="toggleCard('card-power')">
+      <div class="conv-card-title"><span class="icon">⚡</span> GÜÇ</div>
+      <span class="conv-arrow">▼</span>
+    </div>
+    <div class="conv-body">
+      <div class="input-row">
+        <div class="input-group">
+          <label>BİRİM</label>
+          <select id="power-from">
+            <option value="w">W</option>
+            <option value="kw">kW</option>
+            <option value="mw">MW</option>
+            <option value="hp">HP (beygir)</option>
+            <option value="kva">kVA</option>
+            <option value="btu">BTU/h</option>
+          </select>
+        </div>
+        <button class="swap-btn" onclick="swapUnits('power')">⇄</button>
+        <div class="input-group">
+          <label>HEDEF</label>
+          <select id="power-to">
+            <option value="kw">kW</option>
+            <option value="w">W</option>
+            <option value="mw">MW</option>
+            <option value="hp">HP (beygir)</option>
+            <option value="kva">kVA</option>
+            <option value="btu">BTU/h</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-group" style="margin-bottom:10px">
+        <label>DEĞER GİR</label>
+        <input type="number" id="power-in" placeholder="0" oninput="convert('power')">
+      </div>
+      <div class="result-label">SONUÇ</div>
+      <div class="result-display" id="power-out">—</div>
+    </div>
+  </div>
+
+  <!-- AKIM / GERİLİM -->
+  <div class="conv-card" id="card-electric">
+    <div class="conv-card-header" onclick="toggleCard('card-electric')">
+      <div class="conv-card-title"><span class="icon">🔌</span> ELEKTRİK</div>
+      <span class="conv-arrow">▼</span>
+    </div>
+    <div class="conv-body">
+      <div style="margin-bottom:12px">
+        <div class="result-label" style="margin-bottom:8px">OHM KANUNU HESAPLAMA</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div class="input-group">
+            <label>GERİLİM (V)</label>
+            <input type="number" id="ohm-v" placeholder="V" oninput="calcOhm()">
+          </div>
+          <div class="input-group">
+            <label>AKIM (A)</label>
+            <input type="number" id="ohm-i" placeholder="A" oninput="calcOhm()">
+          </div>
+          <div class="input-group">
+            <label>DİRENÇ (Ω)</label>
+            <input type="number" id="ohm-r" placeholder="Ω" oninput="calcOhm()">
+          </div>
+          <div class="input-group">
+            <label>GÜÇ (W)</label>
+            <input type="number" id="ohm-p" placeholder="W" oninput="calcOhm()">
+          </div>
+        </div>
+        <div class="result-label">HESAPLANAN DEĞERLER</div>
+        <div class="result-display" id="ohm-result" style="font-size:13px;line-height:1.6">—</div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:12px">
+        <div class="result-label" style="margin-bottom:8px">BİRİM DÖNÜŞÜMLERİ</div>
+        <div class="input-row">
+          <div class="input-group">
+            <label>BİRİM</label>
+            <select id="electric-from">
+              <option value="a">A (Amper)</option>
+              <option value="ma">mA (miliamper)</option>
+              <option value="v">V (Volt)</option>
+              <option value="mv">mV (milivolt)</option>
+              <option value="kv">kV (kilovolt)</option>
+              <option value="ohm">Ω (Ohm)</option>
+              <option value="kohm">kΩ</option>
+              <option value="mohm">MΩ</option>
+            </select>
+          </div>
+          <button class="swap-btn" onclick="swapUnits('electric')">⇄</button>
+          <div class="input-group">
+            <label>HEDEF</label>
+            <select id="electric-to">
+              <option value="ma">mA (miliamper)</option>
+              <option value="a">A (Amper)</option>
+              <option value="v">V (Volt)</option>
+              <option value="mv">mV (milivolt)</option>
+              <option value="kv">kV (kilovolt)</option>
+              <option value="ohm">Ω (Ohm)</option>
+              <option value="kohm">kΩ</option>
+              <option value="mohm">MΩ</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-group" style="margin-bottom:10px">
+          <label>DEĞER GİR</label>
+          <input type="number" id="electric-in" placeholder="0" oninput="convert('electric')">
+        </div>
+        <div class="result-label">SONUÇ</div>
+        <div class="result-display" id="electric-out">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KÜTLE -->
+  <div class="conv-card" id="card-mass">
+    <div class="conv-card-header" onclick="toggleCard('card-mass')">
+      <div class="conv-card-title"><span class="icon">⚖️</span> KÜTLE</div>
+      <span class="conv-arrow">▼</span>
+    </div>
+    <div class="conv-body">
+      <div class="input-row">
+        <div class="input-group">
+          <label>BİRİM</label>
+          <select id="mass-from">
+            <option value="kg">kg</option>
+            <option value="g">g</option>
+            <option value="t">ton</option>
+            <option value="lb">lb (pound)</option>
+            <option value="oz">oz (ons)</option>
+          </select>
+        </div>
+        <button class="swap-btn" onclick="swapUnits('mass')">⇄</button>
+        <div class="input-group">
+          <label>HEDEF</label>
+          <select id="mass-to">
+            <option value="lb">lb (pound)</option>
+            <option value="kg">kg</option>
+            <option value="g">g</option>
+            <option value="t">ton</option>
+            <option value="oz">oz (ons)</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-group" style="margin-bottom:10px">
+        <label>DEĞER GİR</label>
+        <input type="number" id="mass-in" placeholder="0" oninput="convert('mass')">
+      </div>
+      <div class="result-label">SONUÇ</div>
+      <div class="result-display" id="mass-out">—</div>
+    </div>
+  </div>
+
+  <!-- DEBI / AKIŞ -->
+  <div class="conv-card" id="card-flow">
+    <div class="conv-card-header" onclick="toggleCard('card-flow')">
+      <div class="conv-card-title"><span class="icon">💧</span> DEBİ / AKIŞ</div>
+      <span class="conv-arrow">▼</span>
+    </div>
+    <div class="conv-body">
+      <div class="input-row">
+        <div class="input-group">
+          <label>BİRİM</label>
+          <select id="flow-from">
+            <option value="lmin">L/dak</option>
+            <option value="lh">L/saat</option>
+            <option value="m3h">m³/saat</option>
+            <option value="m3min">m³/dak</option>
+            <option value="gpm">GPM (US)</option>
+            <option value="cfm">CFM</option>
+          </select>
+        </div>
+        <button class="swap-btn" onclick="swapUnits('flow')">⇄</button>
+        <div class="input-group">
+          <label>HEDEF</label>
+          <select id="flow-to">
+            <option value="m3h">m³/saat</option>
+            <option value="lmin">L/dak</option>
+            <option value="lh">L/saat</option>
+            <option value="m3min">m³/dak</option>
+            <option value="gpm">GPM (US)</option>
+            <option value="cfm">CFM</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-group" style="margin-bottom:10px">
+        <label>DEĞER GİR</label>
+        <input type="number" id="flow-in" placeholder="0" oninput="convert('flow')">
+      </div>
+      <div class="result-label">SONUÇ</div>
+      <div class="result-display" id="flow-out">—</div>
+    </div>
+  </div>
+
+  <!-- TORK -->
+  <div class="conv-card" id="card-torque">
+    <div class="conv-card-header" onclick="toggleCard('card-torque')">
+      <div class="conv-card-title"><span class="icon">🔩</span> TORK</div>
+      <span class="conv-arrow">▼</span>
+    </div>
+    <div class="conv-body">
+      <div class="input-row">
+        <div class="input-group">
+          <label>BİRİM</label>
+          <select id="torque-from">
+            <option value="nm">N·m</option>
+            <option value="knm">kN·m</option>
+            <option value="kgfm">kgf·m</option>
+            <option value="lbft">lb·ft</option>
+            <option value="lbin">lb·in</option>
+          </select>
+        </div>
+        <button class="swap-btn" onclick="swapUnits('torque')">⇄</button>
+        <div class="input-group">
+          <label>HEDEF</label>
+          <select id="torque-to">
+            <option value="kgfm">kgf·m</option>
+            <option value="nm">N·m</option>
+            <option value="knm">kN·m</option>
+            <option value="lbft">lb·ft</option>
+            <option value="lbin">lb·in</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-group" style="margin-bottom:10px">
+        <label>DEĞER GİR</label>
+        <input type="number" id="torque-in" placeholder="0" oninput="convert('torque')">
+      </div>
+      <div class="result-label">SONUÇ</div>
+      <div class="result-display" id="torque-out">—</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ARCHIVE PAGE -->
+<div class="page" id="page-archive">
+
+  <!-- Sheets bağlantı banner -->
+  <div id="sheets-banner" style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent2);border-radius:4px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="openSheetsModal()">
+    <span style="font-size:20px">📊</span>
+    <div style="flex:1">
+      <div style="font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:2px;color:var(--accent2)" id="sheets-status-label">GOOGLE SHEETS BAĞLI DEĞİL</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:2px" id="sheets-status-sub">Bağlamak için dokunun →</div>
+    </div>
+    <span style="color:var(--text-dim);font-size:12px" id="sheets-sync-btn">⚙️</span>
+  </div>
+
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="archive-search" placeholder="Başlık, kategori, açıklama ara..." oninput="filterArchive()">
+  </div>
+
+  <div class="filter-row">
+    <button class="filter-chip active" onclick="setFilter('all', this)">TÜMÜ</button>
+    <button class="filter-chip" onclick="setFilter('video', this)">📹 VİDEO</button>
+    <button class="filter-chip" onclick="setFilter('pdf', this)">📄 PDF</button>
+    <button class="filter-chip" onclick="setFilter('excel', this)">📊 EXCEL</button>
+    <button class="filter-chip" onclick="setFilter('manual', this)">📖 KILAVUZ</button>
+    <button class="filter-chip" onclick="setFilter('standard', this)">📋 STANDART</button>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <button class="add-item-btn" style="flex:1;margin:0" onclick="openModal()">+ MANUEL EKLE</button>
+    <button class="add-item-btn" style="width:44px;flex:none;margin:0;font-size:18px" onclick="syncSheets()" title="Sheets'ten yenile">🔄</button>
+  </div>
+
+  <div id="archive-status"></div>
+  <div id="archive-list"></div>
+
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">KAYNAK EKLE</div>
+    <label class="modal-label">BAŞLIK</label>
+    <input type="text" id="modal-title" placeholder="Kaynak adı">
+    <label class="modal-label">BAĞLANTI (URL)</label>
+    <input type="url" id="modal-url" placeholder="https://drive.google.com/...">
+    <label class="modal-label">TİP</label>
+    <select id="modal-type">
+      <option value="pdf">📄 PDF</option>
+      <option value="video">📹 Video</option>
+      <option value="excel">📊 Excel</option>
+      <option value="manual">📖 Kılavuz</option>
+      <option value="standard">📋 Standart</option>
+    </select>
+    <label class="modal-label">KATEGORİ</label>
+    <input type="text" id="modal-cat" placeholder="ör: PLC, Vana, AUMA, Kablo...">
+    <label class="modal-label">AÇIKLAMA (isteğe bağlı)</label>
+    <input type="text" id="modal-desc" placeholder="Kısa not...">
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal()">İPTAL</button>
+      <button class="btn-primary" onclick="saveItem()">KAYDET</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHEETS MODAL -->
+<div class="modal-overlay" id="sheets-modal">
+  <div class="modal">
+    <div class="modal-title">📊 GOOGLE SHEETS BAĞLANTISI</div>
+
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:12px;margin-bottom:14px;font-family:var(--mono);font-size:11px;color:var(--text-dim);line-height:1.8">
+      <div style="color:var(--accent);font-weight:700;margin-bottom:6px;letter-spacing:1px">NASIL YAPILIR?</div>
+      1. Google Sheets'te yeni bir tablo oluştur<br>
+      2. Sütunları şöyle yap:<br>
+      <span style="color:var(--accent2)">A:Başlık | B:Tip | C:Kategori | D:Açıklama | E:Link</span><br>
+      3. Dosya → Paylaş → "Bağlantısı olan herkes"<br>
+      4. Sheets URL'ini buraya yapıştır<br><br>
+      <span style="color:#ff6b35">Tip sütunu: pdf / video / excel / manual / standard</span>
+    </div>
+
+    <label class="modal-label">GOOGLE SHEETS URL</label>
+    <input type="url" id="sheets-url-input" placeholder="https://docs.google.com/spreadsheets/d/...">
+
+    <div style="margin-top:4px;margin-bottom:12px">
+      <div id="sheets-test-result" style="font-family:var(--mono);font-size:11px;color:var(--text-dim);min-height:20px;padding:4px 0"></div>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeSheetsModal()">İPTAL</button>
+      <button class="btn-primary" onclick="connectSheets()">BAĞLAN & YÜKLE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── PAGE NAV ──
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ── CARD TOGGLE ──
+function toggleCard(id){
+  document.getElementById(id).classList.toggle('open');
+}
+
+// ── SWAP UNITS ──
+function swapUnits(type){
+  const f=document.getElementById(type+'-from');
+  const t=document.getElementById(type+'-to');
+  const tmp=f.value; f.value=t.value; t.value=tmp;
+  convert(type);
+}
+
+// ── CONVERTERS ──
+// All conversions go to base unit first
+
+const toBase = {
+  temp: {
+    C: v=>v,
+    F: v=>(v-32)*5/9,
+    K: v=>v-273.15,
+    R: v=>(v-491.67)*5/9
+  },
+  tempFrom: {
+    C: v=>v,
+    F: v=>v*9/5+32,
+    K: v=>v+273.15,
+    R: v=>(v+273.15)*9/5
+  },
+  pressure: {
+    bar:1, psi:0.0689476, pa:0.00001, kpa:0.01, mpa:10, atm:1.01325, mmhg:0.00133322
+  },
+  length: {
+    mm:0.001, cm:0.01, m:1, km:1000, in:0.0254, ft:0.3048, yd:0.9144
+  },
+  power: {
+    w:1, kw:1000, mw:1e6, hp:745.7, kva:1000, btu:0.293071
+  },
+  electric: {
+    a:1, ma:0.001, v:1, mv:0.001, kv:1000, ohm:1, kohm:1000, mohm:1e6
+  },
+  mass: {
+    kg:1, g:0.001, t:1000, lb:0.453592, oz:0.0283495
+  },
+  flow: {
+    lmin:1, lh:1/60, m3h:1000/60, m3min:1000, gpm:3.78541, cfm:28.3168
+  },
+  torque: {
+    nm:1, knm:1000, kgfm:9.80665, lbft:1.35582, lbin:0.113
+  }
+};
+
+function fmt(n){
+  if(Math.abs(n)>=10000||( Math.abs(n)<0.001 && n!==0)) return n.toExponential(4);
+  return parseFloat(n.toPrecision(6)).toString();
+}
+
+function convert(type){
+  const val = parseFloat(document.getElementById(type+'-in').value);
+  const from = document.getElementById(type+'-from').value;
+  const to   = document.getElementById(type+'-to').value;
+  const out  = document.getElementById(type+'-out');
+
+  if(isNaN(val)){ out.textContent='—'; return; }
+
+  let result;
+  if(type==='temp'){
+    const celsius = toBase.temp[from](val);
+    result = toBase.tempFrom[to](celsius);
+  } else {
+    const base = val * toBase[type][from];
+    result = base / toBase[type][to];
+  }
+
+  const unitLabel = {
+    temp: {C:'°C', F:'°F', K:'K', R:'°R'},
+    pressure:{bar:'bar',psi:'PSI',pa:'Pa',kpa:'kPa',mpa:'MPa',atm:'atm',mmhg:'mmHg'},
+    length:{mm:'mm',cm:'cm',m:'m',km:'km',in:'inç',ft:'ft',yd:'yd'},
+    power:{w:'W',kw:'kW',mw:'MW',hp:'HP',kva:'kVA',btu:'BTU/h'},
+    electric:{a:'A',ma:'mA',v:'V',mv:'mV',kv:'kV',ohm:'Ω',kohm:'kΩ',mohm:'MΩ'},
+    mass:{kg:'kg',g:'g',t:'ton',lb:'lb',oz:'oz'},
+    flow:{lmin:'L/dak',lh:'L/saat',m3h:'m³/saat',m3min:'m³/dak',gpm:'GPM',cfm:'CFM'},
+    torque:{nm:'N·m',knm:'kN·m',kgfm:'kgf·m',lbft:'lb·ft',lbin:'lb·in'}
+  };
+
+  out.textContent = fmt(result) + ' ' + unitLabel[type][to];
+}
+
+// ── OHM HESAP ──
+function calcOhm(){
+  const V = parseFloat(document.getElementById('ohm-v').value);
+  const I = parseFloat(document.getElementById('ohm-i').value);
+  const R = parseFloat(document.getElementById('ohm-r').value);
+  const P = parseFloat(document.getElementById('ohm-p').value);
+  const out = document.getElementById('ohm-result');
+  const lines = [];
+
+  // Calculate missing values
+  if(!isNaN(V)&&!isNaN(I)){
+    lines.push('R = '+fmt(V/I)+' Ω');
+    lines.push('P = '+fmt(V*I)+' W');
+  } else if(!isNaN(V)&&!isNaN(R)){
+    lines.push('I = '+fmt(V/R)+' A');
+    lines.push('P = '+fmt(V*V/R)+' W');
+  } else if(!isNaN(I)&&!isNaN(R)){
+    lines.push('V = '+fmt(I*R)+' V');
+    lines.push('P = '+fmt(I*I*R)+' W');
+  } else if(!isNaN(P)&&!isNaN(I)){
+    lines.push('V = '+fmt(P/I)+' V');
+    lines.push('R = '+fmt(P/(I*I))+' Ω');
+  } else if(!isNaN(P)&&!isNaN(V)){
+    lines.push('I = '+fmt(P/V)+' A');
+    lines.push('R = '+fmt(V*V/P)+' Ω');
+  } else {
+    out.textContent='İki değer gir...'; return;
+  }
+  out.textContent = lines.join('\n');
+}
+
+// ── ARCHIVE ──
+let archive = JSON.parse(localStorage.getItem('ac_archive') || '[]');
+let activeFilter = 'all';
+let sheetsUrl = localStorage.getItem('ac_sheets_url') || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTykYcqRa2UdAn2ohatimq2ixU9U78ruRiMulNS4xPthaQMM1kHkUVF-JbxednXehT72rWo9pby7XBt/pub?output=csv';
+
+const typeIcons  = { video:'📹', pdf:'📄', excel:'📊', manual:'📖', standard:'📋' };
+const typeLabels = { video:'VİDEO', pdf:'PDF', excel:'EXCEL', manual:'KILAVUZ', standard:'STANDART' };
+const typeColors = { video:'accent2', pdf:'accent', excel:'accent3', manual:'accent', standard:'accent2' };
+
+function saveArchive(){ localStorage.setItem('ac_archive', JSON.stringify(archive)); }
+
+function sheetsToCsv(url){
+  try {
+    // Direkt yayınlanmış CSV linki (pub?output=csv)
+    if(url.includes('pub?output=csv') || url.includes('pub&output=csv')) return url;
+    // Normal Sheets URL → gviz endpoint
+    const m = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+    if(!m) return null;
+    return `https://docs.google.com/spreadsheets/d/${m[1]}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
+  } catch(e){ return null; }
+}
+
+async function fetchCSV(csvUrl){
+  return new Promise((resolve, reject)=>{
+    try {
+      const cbName = 'gviz_cb_' + Date.now();
+      const script = document.createElement('script');
+
+      const timeout = setTimeout(()=>{
+        delete window[cbName];
+        if(script.parentNode) document.head.removeChild(script);
+        reject(new Error('Zaman aşımı — Vercel\'e deploy ettikten sonra çalışacak'));
+      }, 8000);
+
+      window[cbName] = function(data){
+        clearTimeout(timeout);
+        delete window[cbName];
+        if(script.parentNode) document.head.removeChild(script);
+        try {
+          const cols = data.table.cols.map(c => c.label || '');
+          const rows = data.table.rows.map(r =>
+            r.c.map(cell => (cell && cell.v != null) ? String(cell.v) : '')
+          );
+          const csv = [cols, ...rows].map(r =>
+            r.map(v => v.includes(',') ? `"${v}"` : v).join(',')
+          ).join('\n');
+          resolve(csv);
+        } catch(e){ reject(new Error('Veri parse hatası: ' + e.message)); }
+      };
+
+      // /e/ published ID için doğru endpoint
+      const mPub  = csvUrl.match(/\/d\/e\/([^/?]+)/);
+      const mNorm = csvUrl.match(/\/d\/([^/e][^/?]+)/);
+
+      let gvizUrl;
+      if(mPub){
+        gvizUrl = `https://docs.google.com/spreadsheets/d/e/${mPub[1]}/gviz/tq?tqx=out:json&callback=${cbName}`;
+      } else if(mNorm){
+        gvizUrl = `https://docs.google.com/spreadsheets/d/${mNorm[1]}/gviz/tq?tqx=out:json&callback=${cbName}`;
+      } else {
+        reject(new Error('Geçersiz Sheets URL')); return;
+      }
+
+      script.src = gvizUrl;
+      script.onerror = () => {
+        clearTimeout(timeout);
+        delete window[cbName];
+        if(script.parentNode) document.head.removeChild(script);
+        reject(new Error('Script yüklenemedi'));
+      };
+      document.head.appendChild(script);
+    } catch(e){ reject(e); }
+  });
+}
+
+async function syncSheets(){
+  if(!sheetsUrl){ openSheetsModal(); return; }
+  const statusEl = document.getElementById('archive-status');
+  statusEl.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--accent);padding:8px 0;letter-spacing:1px">⟳ SHEETS'TEN YÜKLENIYOR...</div>`;
+  const csvUrl = sheetsToCsv(sheetsUrl);
+  if(!csvUrl){ statusEl.innerHTML=''; return; }
+  try {
+    const text = await fetchCSV(csvUrl);
+    const rows = parseCSV(text);
+    const sheetsItems = rows.slice(1).filter(r=>r[0]&&r[0].trim()).map(r=>({
+      title:(r[0]||'').trim(), type:(r[1]||'pdf').trim().toLowerCase(),
+      cat:(r[2]||'').trim(), desc:(r[3]||'').trim(), url:(r[4]||'').trim(), src:'sheets'
+    }));
+    const manualItems = archive.filter(x=>x.src!=='sheets');
+    archive = [...sheetsItems, ...manualItems];
+    saveArchive();
+    statusEl.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--accent3);padding:6px 0;letter-spacing:1px">✓ ${sheetsItems.length} KAYNAK YÜKLENDİ</div>`;
+    setTimeout(()=>{ statusEl.innerHTML=''; }, 3000);
+    updateSheetsBanner(true, sheetsItems.length);
+    renderArchive();
+  } catch(e){
+    statusEl.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:#ff4444;padding:6px 0">⚠ Bağlantı hatası: ${e.message}</div>`;
+  }
+}
+
+function parseCSV(text){
+  const rows=[];
+  for(const line of text.split('\n')){
+    if(!line.trim()) continue;
+    const row=[]; let cur='', inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){inQ=!inQ;}
+      else if(c===','&&!inQ){row.push(cur);cur='';}
+      else{cur+=c;}
+    }
+    row.push(cur); rows.push(row);
+  }
+  return rows;
+}
+
+function updateSheetsBanner(connected, count){
+  const lbl=document.getElementById('sheets-status-label');
+  const sub=document.getElementById('sheets-status-sub');
+  const btn=document.getElementById('sheets-sync-btn');
+  if(connected){
+    lbl.style.color='var(--accent3)'; lbl.textContent='GOOGLE SHEETS BAĞLI ✓';
+    sub.textContent=`${count} kaynak yüklendi — değiştirmek için dokunun`; btn.textContent='🔄';
+  } else {
+    lbl.style.color='var(--accent2)'; lbl.textContent='GOOGLE SHEETS BAĞLI DEĞİL';
+    sub.textContent='Bağlamak için dokunun →'; btn.textContent='⚙️';
+  }
+}
+
+// ── FUZZY SEARCH ──
+// Hem birebir hem yakın eşleşme (typo toleranslı)
+function fuzzyMatch(text, q){
+  if(!text||!q) return {match:false, score:0};
+  const t=text.toLowerCase(), s=q.toLowerCase();
+  // 1. Birebir içerir → en yüksek skor
+  if(t.includes(s)) return {match:true, score:100};
+  // 2. Tüm harfler sıralı var mı? (subsequence)
+  let si=0;
+  for(let i=0;i<t.length&&si<s.length;i++) if(t[i]===s[si]) si++;
+  if(si===s.length) return {match:true, score:60};
+  // 3. Levenshtein mesafesi (kısa sorgular için)
+  if(s.length>=3){
+    const words=t.split(/\s+/);
+    for(const w of words){
+      const dist=levenshtein(w, s);
+      const threshold=s.length<=4?1:s.length<=7?2:3;
+      if(dist<=threshold) return {match:true, score:Math.max(10, 50-dist*10)};
+    }
+  }
+  return {match:false, score:0};
+}
+
+function levenshtein(a, b){
+  const m=a.length, n=b.length;
+  const dp=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>i||j));
+  for(let i=1;i<=m;i++)
+    for(let j=1;j<=n;j++)
+      dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+function itemScore(x, q){
+  if(!q) return {match:true, score:100};
+  const fields=[
+    {text:x.title||'', weight:3},
+    {text:x.cat||'',   weight:2},
+    {text:x.desc||'',  weight:1}
+  ];
+  let best=0;
+  for(const f of fields){
+    const r=fuzzyMatch(f.text, q);
+    if(r.match) best=Math.max(best, r.score*f.weight);
+  }
+  return {match:best>0, score:best};
+}
+
+function highlight(text, q){
+  if(!q||!text) return text||'';
+  const idx=text.toLowerCase().indexOf(q.toLowerCase());
+  if(idx<0) return text;
+  return text.slice(0,idx)+`<mark style="background:rgba(0,212,255,0.25);color:var(--accent);border-radius:2px">${text.slice(idx,idx+q.length)}</mark>`+text.slice(idx+q.length);
+}
+
+function renderArchive(){
+  const q=(document.getElementById('archive-search').value||'').trim();
+  const list=document.getElementById('archive-list');
+
+  let filtered=archive
+    .map(x=>({...x, _score: itemScore(x,q).score, _match: itemScore(x,q).match}))
+    .filter(x=>{
+      const matchType=activeFilter==='all'||x.type===activeFilter;
+      return matchType && x._match;
+    })
+    .sort((a,b)=>b._score-a._score);
+  if(filtered.length===0){
+    const icon=activeFilter==='all'?'📁':(typeIcons[activeFilter]||'📁');
+    list.innerHTML=`<div class="empty-state"><div class="empty-icon">${icon}</div><p>${q?`"${q}" için sonuç yok`:'Henüz kaynak yok.<br>Sheets bağla veya manuel ekle.'}</p></div>`;
+    return;
+  }
+  list.innerHTML=filtered.map(x=>{
+    const realIdx=archive.indexOf(x);
+    const color=typeColors[x.type]||'accent';
+    return `<a class="archive-item" href="${x.url||'#'}" target="_blank" data-type="${x.type}">
+      <div class="archive-icon ${x.type==='video'?'video':'pdf'}">${typeIcons[x.type]||'📄'}</div>
+      <div class="archive-info">
+        <div class="archive-title">${highlight(x.title,q)}</div>
+        <div class="archive-meta">
+          <span class="archive-tag" style="color:var(--${color});border-color:var(--${color})">${typeLabels[x.type]||x.type}</span>
+          ${x.cat?`<span style="color:var(--text-dim)">${highlight(x.cat,q)}</span>`:''}
+        </div>
+        ${x.desc?`<div style="font-size:11px;color:var(--text-dim);margin-top:3px">${highlight(x.desc,q)}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+        ${x.url?'<span style="color:var(--accent);font-size:16px">↗</span>':''}
+        <button class="delete-btn" onclick="deleteItem(event,${realIdx})">🗑️</button>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+function filterArchive(){ renderArchive(); }
+
+function setFilter(f, btn){
+  activeFilter=f;
+  document.querySelectorAll('.filter-chip').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  renderArchive();
+}
+
+function openModal(){
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('modal-title').focus();
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+  ['modal-title','modal-url','modal-cat','modal-desc'].forEach(id=>{ document.getElementById(id).value=''; });
+}
+
+function saveItem(){
+  const title=document.getElementById('modal-title').value.trim();
+  const url=document.getElementById('modal-url').value.trim();
+  const type=document.getElementById('modal-type').value;
+  const cat=document.getElementById('modal-cat').value.trim();
+  const desc=document.getElementById('modal-desc').value.trim();
+  if(!title){alert('Başlık gerekli');return;}
+  archive.unshift({title,url,type,cat,desc,src:'manual'});
+  saveArchive(); closeModal(); renderArchive();
+}
+
+function deleteItem(e,idx){
+  e.preventDefault(); e.stopPropagation();
+  if(confirm('Silinsin mi?')){archive.splice(idx,1);saveArchive();renderArchive();}
+}
+
+function openSheetsModal(){
+  document.getElementById('sheets-modal').classList.add('open');
+  document.getElementById('sheets-url-input').value=sheetsUrl;
+  document.getElementById('sheets-test-result').textContent='';
+}
+
+function closeSheetsModal(){ document.getElementById('sheets-modal').classList.remove('open'); }
+
+async function connectSheets(){
+  const url=document.getElementById('sheets-url-input').value.trim();
+  const res=document.getElementById('sheets-test-result');
+  if(!url){res.textContent='⚠ URL gir';return;}
+  const csvUrl=sheetsToCsv(url);
+  if(!csvUrl){res.textContent="⚠ Geçerli bir Google Sheets URL'i değil";return;}
+  res.style.color='var(--accent)'; res.textContent='⟳ Test ediliyor...';
+  try {
+    const text = await fetchCSV(csvUrl);
+    const rows=parseCSV(text);
+    const count=rows.slice(1).filter(r=>r[0]&&r[0].trim()).length;
+    res.style.color='var(--accent3)'; res.textContent=`✓ Bağlandı — ${count} satır bulundu`;
+    sheetsUrl=url; localStorage.setItem('ac_sheets_url',sheetsUrl);
+    setTimeout(()=>{ closeSheetsModal(); syncSheets(); },1000);
+  } catch(e){
+    res.style.color='#ff4444'; res.textContent="⚠ Erişilemiyor. Aşağıdaki adımı dene: Uzantılar → Yayınla → Web'e yayınla → CSV olarak yayınla.";
+  }
+}
+
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+document.getElementById('sheets-modal').addEventListener('click',function(e){if(e.target===this)closeSheetsModal();});
+
+// ── TEMP TABS ──
+function switchTempTab(tab){
+  ['std','pt100','ma'].forEach(t=>{
+    document.getElementById('temp-panel-'+t).style.display = t===tab?'block':'none';
+    document.getElementById('ttab-'+t).classList.toggle('active', t===tab);
+  });
+}
+
+// ── PT100 / PT1000 ──
+// Callendar-Van Dusen (IEC 60751): R(T) = R0*(1 + A*T + B*T²) for T≥0
+// For T<0: R(T) = R0*(1 + A*T + B*T² + C*(T-100)*T³)
+const CVD = {
+  A: 3.9083e-3,
+  B: -5.775e-7,
+  C: -4.183e-12
+};
+
+function ptResistance(tempC, R0){
+  const {A,B,C} = CVD;
+  if(tempC >= 0){
+    return R0 * (1 + A*tempC + B*tempC*tempC);
+  } else {
+    return R0 * (1 + A*tempC + B*tempC*tempC + C*(tempC-100)*tempC*tempC*tempC);
+  }
+}
+
+// Newton-Raphson inverse: resistance → temperature
+function ptTemperature(R, R0){
+  let T = (R/R0 - 1) / CVD.A; // initial estimate
+  for(let i=0; i<20; i++){
+    const f  = ptResistance(T, R0) - R;
+    const df = R0 * (CVD.A + 2*CVD.B*T + (T<0 ? CVD.C*(4*T*T*T - 300*T*T) : 0));
+    const dT = f/df;
+    T -= dT;
+    if(Math.abs(dT)<0.0001) break;
+  }
+  return T;
+}
+
+function calcPT(){
+  const typeVal = document.getElementById('pt-type').value;
+  const dir     = document.getElementById('pt-dir').value;
+  const inp     = parseFloat(document.getElementById('pt-in').value);
+  const label   = document.getElementById('pt-in-label');
+  const out     = document.getElementById('pt-out');
+
+  // R0 bazı
+  const R0map = { '100': 100, '1000': 1000, '100_jis': 100 };
+  const R0 = R0map[typeVal];
+  const name = typeVal==='1000'?'PT1000':'PT100';
+
+  if(dir==='t2r'){
+    label.textContent = 'SICAKLIK (°C)';
+    if(isNaN(inp)){ out.textContent='—'; return; }
+    if(inp < -200 || inp > 850){ out.textContent='⚠ Aralık: -200…+850 °C'; return; }
+    const R = ptResistance(inp, R0);
+    out.textContent = fmt(R) + ' Ω  (' + name + ')';
+  } else {
+    label.textContent = 'DİRENÇ (Ω)';
+    if(isNaN(inp)){ out.textContent='—'; return; }
+    const minR = ptResistance(-200, R0);
+    const maxR = ptResistance(850, R0);
+    if(inp < minR || inp > maxR){ out.textContent='⚠ Geçersiz direnç değeri'; return; }
+    const T = ptTemperature(inp, R0);
+    out.textContent = fmt(T) + ' °C  (' + name + ')';
+  }
+}
+
+// ── 4–20 mA ──
+function calcMA_fromMA(){
+  document.getElementById('ma-temp').value='';
+  calcMA();
+}
+function calcMA_fromTemp(){
+  document.getElementById('ma-ma').value='';
+  calcMA();
+}
+
+function calcMA(){
+  const tmin = parseFloat(document.getElementById('ma-tmin').value);
+  const tmax = parseFloat(document.getElementById('ma-tmax').value);
+  const ma   = parseFloat(document.getElementById('ma-ma').value);
+  const temp = parseFloat(document.getElementById('ma-temp').value);
+  const out  = document.getElementById('ma-out');
+
+  if(isNaN(tmin)||isNaN(tmax)||tmax<=tmin){ out.textContent='⚠ Geçerli ölçek gir'; return; }
+  const span = tmax - tmin;
+
+  if(!isNaN(ma)){
+    if(ma<3.8||ma>20.5){ out.textContent='⚠ 4–20 mA aralığı dışında'; return; }
+    const T = tmin + (ma-4) * span / 16;
+    const pct = ((ma-4)/16*100).toFixed(1);
+    out.textContent = `${fmt(T)} °C\n${pct}% — ${fmt(ma)} mA`;
+  } else if(!isNaN(temp)){
+    const mA_val = 4 + (temp-tmin)*16/span;
+    if(mA_val<3.8||mA_val>20.5){ out.textContent='⚠ Sıcaklık ölçek dışında'; return; }
+    const pct = ((mA_val-4)/16*100).toFixed(1);
+    out.textContent = `${fmt(mA_val)} mA\n${pct}% — ${fmt(temp)} °C`;
+  } else {
+    out.textContent='—';
+  }
+}
+
+// Init
+if(sheetsUrl){
+  const sheetsCount=archive.filter(x=>x.src==='sheets').length;
+  updateSheetsBanner(true, sheetsCount);
+  syncSheets(); // sayfa açılınca otomatik yükle
+}
+renderArchive();
+</script>
+</body>
+</html>
